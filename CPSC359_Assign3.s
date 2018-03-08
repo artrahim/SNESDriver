@@ -1,5 +1,5 @@
 writeLatch:				//write 0 or 1 to the latch as specified by r0
-	mov	r1, #9			//r0 = pin 9 = clock line
+	mov	r1, #9			//r1 = pin 9 = clock line
 	ldr	r2, =0x3F200000		//r2 = base GPIO register
 	mov	r3, #1
 	lsl	r3, r1			//align pin 9 bit
@@ -12,7 +12,7 @@ writeLatch:				//write 0 or 1 to the latch as specified by r0
 	mov	pc, lr			//branch back to main routine
 
 writeClock:				//write 0 or 1 to the clock as specified by r0
-	mov	r1, #11			//r0 = pin 11 = clock line
+	mov	r1, #11			//r1 = pin 11 = clock line
 	ldr	r2, =0x3F200000		//r2 = base GPIO register
 	mov	r3, #1
 	lsl	r3, r1			//align pin 11 bit
