@@ -4,7 +4,7 @@
 .global main
 main:
 	buttonW	.req	r5		//name commonly used registers
-	gBaser	.req	r6
+	gBaseR	.req	r6
 	
 	bl	getGpioPtr		//get GPIO base adress and store in label	
 	ldr	r1, =GpioBase
@@ -16,7 +16,7 @@ main:
 	
 writeLatch:				//write 0 or 1 to the latch as specified by r0
 	mov	r1, #9			//r1 = pin 9 = clock line
-	ldr	r2, [GpioBase]		//r2 = base GPIO register
+	ldr	r2, [gBaseR]		//r2 = base GPIO register
 	mov	r3, #1
 	lsl	r3, r1			//align pin 9 bit
 
@@ -29,7 +29,7 @@ writeLatch:				//write 0 or 1 to the latch as specified by r0
 
 writeClock:				//write 0 or 1 to the clock as specified by r0
 	mov	r1, #11			//r1 = pin 11 = clock line
-	ldr	r2, =0x3F200000		//r2 = base GPIO register
+	ldr	r2, [gBaseR, #0x04]	//r2 = base GPIO register
 	mov	r3, #1
 	lsl	r3, r1			//align pin 11 bit
 
@@ -42,7 +42,7 @@ writeClock:				//write 0 or 1 to the clock as specified by r0
 
 readData:				/read value stored in GPLEV0
 	mov	r0, #10			//r0 = pin 10 = data line
-	ldr	r2, =0x3F200000		//r2 = base register
+	ldr	r2, [gBaseR, #0x04]	//r2 = base register
 	ldr	r1, [r2, #52]		//r1 = GPLEV0
 	mov	r3, #1
 	lsl	r3, r0			//align pin 10 bit
