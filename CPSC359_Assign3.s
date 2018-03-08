@@ -1,8 +1,21 @@
+writeClock:				//write 0 or 1 to the latch as specified by r1
+	mov  r0, #9			//r0 = pin 9 = clock line
+	ldr  r2, =0x3F200000		//r2 = base GPIO register
+	mov  r3, #1
+	lsl  r3, r0			//align pin 9 bit
+
+	teq  r1, #0			//check the value to write
+
+	streq  r3, [r2, #40]		//r3 = GPCLR0, clear the line
+	strne  r3, [r2, #28]		//r3 = GPSET0, set the line
+
+	mov  pc, lr			//branch back to main routine
+
 writeClock:				//write 0 or 1 to the clock as specified by r1
 	mov  r0, #11			//r0 = pin 11 = clock line
 	ldr  r2, =0x3F200000		//r2 = base GPIO register
 	mov  r3, #1
-	lsl  r3, r0			//align pin11 bit
+	lsl  r3, r0			//align pin 11 bit
 
 	teq  r1, #0			//check the value to write
 
@@ -16,7 +29,7 @@ readData:				/read value stored in GPLEV0
 	ldr  r2, =0x3F200000		//r2 = base register
 	ldr  r1, [r2, #52]		//r1 = GPLEV0
 	mov  r3, #1
-	lsl  r3, r0			//align pin10 bit
+	lsl  r3, r0			//align pin 10 bit
 
 	and  r1, r3			//mask everything else
 	teq  r1, #0			//test GPLEV0 value to read
