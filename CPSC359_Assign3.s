@@ -1,6 +1,22 @@
+@ Authors: Artemiss Rahim and Masroor Hussain Syed
+.section	.text
+@ Text section 
+.global main
+main:
+	buttonW	.req	r5		//name commonly used registers
+	gBaser	.req	r6
+	
+	bl	getGpioPtr		//get GPIO base adress and store in label	
+	ldr	r1, =GpioBase
+	str	r0, [r1]
+	
+	ldr	r0, =GpioBase
+	ldr	gBaser, [r0]		//save GPIO address to a register
+	
+	
 writeLatch:				//write 0 or 1 to the latch as specified by r0
 	mov	r1, #9			//r1 = pin 9 = clock line
-	ldr	r2, =0x3F200000		//r2 = base GPIO register
+	ldr	r2, [GpioBase]		//r2 = base GPIO register
 	mov	r3, #1
 	lsl	r3, r1			//align pin 9 bit
 
@@ -56,3 +72,9 @@ clockLoop:
 	bl	Write_Clock		// write 0 CLK
 	mov	r0, #6
 	bl	delayMircoseconds	// 6usec
+	
+@ Data section
+.section	.data
+
+GpioBase:
+.word		0
