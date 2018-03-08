@@ -1,4 +1,4 @@
-writeClock:				//write 0 or 1 to the latch as specified by r1
+writeLatch:				//write 0 or 1 to the latch as specified by r1
 	mov  r0, #9			//r0 = pin 9 = clock line
 	ldr  r2, =0x3F200000		//r2 = base GPIO register
 	mov  r3, #1
