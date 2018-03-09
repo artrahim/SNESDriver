@@ -65,7 +65,7 @@ ReadSNES:
 	mov	r0, #0
 	bl	writeLatch		//write 0 to the latch
 	mov	r7, #0			//initialize loop variables
-	mov	buttonW, #0		
+	mov	r8, #0		
 	
 clockLoop:
 	mov	r0, #6
@@ -79,10 +79,11 @@ clockLoop:
 	bl	writeClock
 	bl	readData		//read data during rising edge of the clock
 	lsl	r0, r7			//shift the  bit to its appropriate location in buttonW
-	and	buttonW, r0		//put the bit in the right location in buttonW
+	and	r8, r0		//put the bit in the right location in buttonW
 	add	r7, #1
 	cmp	r7, #16			
 	blt	clockLoop		//if full data is not built loop again
+	mov	r0, r8
 	mov	pc, lr
 	
 printPressed:
