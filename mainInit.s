@@ -32,6 +32,31 @@ main:
 	bl 	initGPIO
 
 
+	mainLoop:
+	// promt press a button
+
+	// write 1 to clock
+	mov 	r0, #1
+	bl 	Write_Clock
+
+	// write 1 to latch
+	mov 	r0, #1
+	bl 	Write_Latch
+	
+	// delay by 12 ms
+	mov	r0, #12
+	bl 	delayMircoseconds	
+	
+	// write 0 to latch
+	mov	r0, #0
+	bl 	Write_Latch
+	
+	bl 	readSNES
+
+
+
+	b mainLoop
+
 haltLoop$:
 	b		haltLoop$
 
