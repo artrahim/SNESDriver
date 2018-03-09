@@ -50,31 +50,90 @@ readData:				/read value stored in GPLEV0
 	and	r1, r3			//mask everything else
 	teq	r1, #0			//test GPLEV0 value to read
 
-	moveq	r4, #0			//r4 = return 0
-	movne	r4, #1			//r4 = return 1
+	moveq	r0, #0			//r0 = return 0
+	movne	r0, #1			//r0 = return 1
 
 	mov	pc, lr			//branch back to main routine
 
 ReadSNES:
 	mov	r0, #1
-	bl	Write_Clock		// write 1 to clock
+	bl	writeClock		//write 1 to the clock
 	mov	r0, #1
-	bl	Write_Latch		// write 1 to LAT
+	bl	writeLatch		//write 1 to the latch
 	mov	r0, #12
-	bl	delayMircoseconds	// delay 12 us
+	bl	delayMircoseconds	//delay 12 usec
 	mov	r0, #0
-	bl	Write_Latch		// write 0 to LAT
+	bl	Write_Latch		//write 0 to the latch
 	
 clockLoop:
 	mov	r0, #6
-	bl	delayMircoseconds	// 6usec
+	bl	delayMircoseconds	//delay 6 usec
 	mov	r0, #0
-	bl	Write_Clock		// write 0 CLK
+	bl	writeClock		//write 0 to the clock
 	mov	r0, #6
-	bl	delayMircoseconds	// 6usec
+	bl	delayMircoseconds	//delay 6 usec
+	
+	mov	r0, #1			//write 1 to the clock
+	bl	writeClock
+	bl	readData		//read data during rising edge of the clock
+	mov	buttonW, r0		//store data in register
+	mov	r0, #1			//initialize i = 1 to check for buttons pressed
+
+printPressed:
+	ldr	r0, =HavePressed	//print the prompt
+	bl	printf
+	
+	
+
+buttonOneCheck:				//test the 1st button for being pressed
+	teq	r0, #1
+	
+	
+	
+	mov	r0, #6
+	bl	delayMicroseconds	//delay 6 usec
 	
 @ Data section
 .section	.data
 
 GpioBase:
 .word		0
+
+HavePressed:
+.asciz		"Please press a button..."
+
+PressB:
+.asciz		"You have pressed B"
+
+PressY:
+.asciz		"You have pressed Y"
+
+PressSelect:
+.asciz		"You have pressed Select"
+
+PressStart:
+.asciz		"You have pressed Start"
+
+PressUp:
+.asciz		"You have pressed Joy-pad UP"
+
+PressDown:
+.asciz		"You have pressed Joy-pad DOWN"
+
+PressLeft:
+.asciz		"You have pressed Joy-pad LEFT"
+
+PressRight:
+.asciz		"You have pressed Joy-pad RIGHT"
+
+PressA:
+.asciz		"You have pressed A"
+
+PressX:
+.asciz		"You have pressed X"
+
+PressLeftTrigger:
+.asciz		"You have pressed Left Trigger"
+
+PressRightTrigger:
+.asciz		"You have pressed Right Trigger"
