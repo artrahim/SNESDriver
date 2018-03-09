@@ -64,7 +64,8 @@ ReadSNES:
 	bl	delayMircoseconds	//delay 12 usec
 	mov	r0, #0
 	bl	writeLatch		//write 0 to the latch
-	mov	r7, #1			//initialize loop variable
+	mov	r7, #0			//initialize loop variables
+	mov	buttonW, #0		
 	
 clockLoop:
 	mov	r0, #6
@@ -77,15 +78,15 @@ clockLoop:
 	mov	r0, #1			//write 1 to the clock
 	bl	writeClock
 	bl	readData		//read data during rising edge of the clock
-	mov	buttonW, r0		//store data in register
-	lsl	buttonW, #1		//shift the data in the register to get the next bit
+	lsl	r0, r7			//shift the  bit to its appropriate location in buttonW
+	and	buttonW, r0		//put the bit in the right location in buttonW
 	add	r7, #1
 	cmp	r7, #16			
 	blt	clockLoop		//if full data is not built loop again
+	mov	pc, lr
 	
-	mov	r7, #1			//initialize r7 = 1 to check for buttons pressed
-
 printPressed:
+	mov	r7, #1			//initialize r7 = 1 to check for buttons pressed
 	ldr	r0, =HavePressed	//print the prompt
 	bl	printf
 
