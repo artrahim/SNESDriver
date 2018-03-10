@@ -30,7 +30,10 @@ main:
 
 
 mainLoop:
-	// promt press a button
+
+	// prompt press a button
+	ldr	r0, =UserPrompt
+	bl	printf
 
 	// write 1 to clock
 	mov 	r0, #1
@@ -49,10 +52,12 @@ mainLoop:
 	bl 	writeLatch
 	
 	bl 	readSNES
+	mov	buttonW, r0		//store user input into register
+
+	mov 	r0, #1
 
 
-
-	b 	mainLoop
+	//b 	mainLoop
 
 haltLoop$:
 	b		haltLoop$
@@ -107,8 +112,10 @@ returnInitGPIO:
 	mov 	pc,lr
 	
 writeLatch:				//write 0 or 1 to the latch as specified by r0
+	push	{r4}
 	mov	r1, #9			//r1 = pin 9 = clock line
-	ldr	r2, [gBaseR]		//r2 = base GPIO register
+	ldr	r4, =GpioBase
+	ldr	r2, [r4]		//save GPIO address to a register
 	mov	r3, #1
 	lsl	r3, r1			//align pin 9 bit
 
@@ -116,13 +123,15 @@ writeLatch:				//write 0 or 1 to the latch as specified by r0
 
 	streq	r3, [r2, #40]		//r3 = GPCLR0, clear the line
 	strne	r3, [r2, #28]		//r3 = GPSET0, set the line
+	pop	{r4}
 
 	mov	pc, lr			//branch back to main routine
 
 writeClock:				//write 0 or 1 to the clock as specified by r0
+	push	{r4}
 	mov	r1, #11			//r1 = pin 11 = clock line
-	ldr	r0, =GpioBase
-	ldr	r2, [r0]		//save GPIO address to a register
+	ldr	r4, =GpioBase
+	ldr	r2, [r4]		//save GPIO address to a register
 
 	mov	r3, #1
 	lsl	r3, r1			//align pin 11 bit
@@ -131,12 +140,15 @@ writeClock:				//write 0 or 1 to the clock as specified by r0
 
 	streq	r3, [r2, #40]		//r3 = GPCLR0, clear the line
 	strne	r3, [r2, #28]		//r3 = GPSET0, set the line
+	pop	{r4}
 
 	mov	pc, lr			//branch back to main routine
 
 readData:				//read value stored in GPLEV0
+	push	{r4}
 	mov	r0, #10			//r0 = pin 10 = data line
-	ldr	r2, [gBaseR, #0x04]	//r2 = base register
+	ldr	r4, =GpioBase
+	ldr	r2, [r4]		//save GPIO address to a register
 	ldr	r1, [r2, #52]		//r1 = GPLEV0
 	mov	r3, #1
 	lsl	r3, r0			//align pin 10 bit
@@ -146,6 +158,7 @@ readData:				//read value stored in GPLEV0
 
 	moveq	r0, #0			//r0 = return 0
 	movne	r0, #1			//r0 = return 1
+	pop	{r4}
 
 	mov	pc, lr			//branch back to main routine
 
@@ -206,7 +219,7 @@ buttonTwoCheck:				//test if the Y	button is pressed
 GpioBase:
 .word		0
 
-HavePressed:
+UserPrompt:
 .asciz		"Please press a button..."
 
 PressB:
