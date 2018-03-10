@@ -35,29 +35,10 @@ mainLoop:
 	ldr	r0, =UserPrompt
 	bl	printf
 
-	// write 1 to clock
-	mov 	r0, #1
-	bl 	writeClock
-
-	// write 1 to latch
-	mov 	r0, #1
-	bl 	writeLatch
-	
-	// delay by 12 ms
-	mov	r0, #12
-	bl 	delayMicroseconds	
-	
-	// write 0 to latch
-	mov	r0, #0
-	bl 	writeLatch
-	
 	bl 	readSNES
 	mov	buttonW, r0		//store user input into register
 
-	mov 	r0, #1
-
-
-	//b 	mainLoop
+	b 	mainLoop
 
 haltLoop$:
 	b		haltLoop$
@@ -86,6 +67,7 @@ setGPIO9:
 	b	returnInitGPIO		// goto the return of the function
 
 setGPIO10:
+
 	ldr 	r3,[gBaseR, #0x04]	// r3 has the the value of FSR 1
 	
 	mov 	r4, #0b111		// r4 = output function code
@@ -145,11 +127,14 @@ writeClock:				//write 0 or 1 to the clock as specified by r0
 	mov	pc, lr			//branch back to main routine
 
 readData:				//read value stored in GPLEV0
-	push	{r4}
+	push	{r4,r7}
 	mov	r0, #10			//r0 = pin 10 = data line
+	
 	ldr	r4, =GpioBase
-	ldr	r2, [r4]		//save GPIO address to a register
-	ldr	r1, [r2, #52]		//r1 = GPLEV0
+	ldr	r7, [r4]		//save GPIO address to a register
+	
+	ldr	r1, [r7, #52]		//r1 = GPLEV0
+	
 	mov	r3, #1
 	lsl	r3, r0			//align pin 10 bit
 
@@ -158,40 +143,52 @@ readData:				//read value stored in GPLEV0
 
 	moveq	r0, #0			//r0 = return 0
 	movne	r0, #1			//r0 = return 1
-	pop	{r4}
+	pop	{r4,r7}
 
 	mov	pc, lr			//branch back to main routine
 
 readSNES:
+	push	{r7,r8,lr}
+
 	mov	r0, #1
 	bl	writeClock		//write 1 to the clock
+	
 	mov	r0, #1
 	bl	writeLatch		//write 1 to the latch
+	
 	mov	r0, #12
 	bl	delayMicroseconds	//delay 12 usec
+	
 	mov	r0, #0
 	bl	writeLatch		//write 0 to the latch
-	mov	r7, #0			//initialize loop variables
-	mov	r8, #0		
+	
+	mov	r7, #0			//loop counter
+	mov	r8, #0			//buttons sample		
 	
 clockLoop:
+
 	mov	r0, #6
 	bl	delayMicroseconds	//delay 6 usec
+
 	mov	r0, #0
 	bl	writeClock		//write 0 to the clock
+	
 	mov	r0, #6
 	bl	delayMicroseconds	//delay 6 usec
 	
-	mov	r0, #1			//write 1 to the clock
-	bl	writeClock
 	bl	readData		//read data during rising edge of the clock
 	lsl	r0, r7			//shift the  bit to its appropriate location in buttonW
-	and	r8, r0		//put the bit in the right location in buttonW
+	orr	r8, r0			//put the bit in the right location in buttonW
+
+	mov	r0, #1
+	bl	writeClock		//write 0 to the clock
+
 	add	r7, #1
 	cmp	r7, #16			
 	blt	clockLoop		//if full data is not built loop again
 	mov	r0, r8
-	mov	pc, lr
+	pop 	{r7,r8,pc}
+
 /*	
 printPressed:
 	mov	r7, #1			//initialize r7 = 1 to check for buttons pressed
@@ -220,40 +217,40 @@ GpioBase:
 .word		0
 
 UserPrompt:
-.asciz		"Please press a button..."
+.asciz		"Please press a button...\n"
 
 PressB:
-.asciz		"You have pressed B"
+.asciz		"You have pressed B\n"
 
 PressY:
-.asciz		"You have pressed Y"
+.asciz		"You have pressed Y\n"
 
 PressSelect:
-.asciz		"You have pressed Select"
+.asciz		"You have pressed Select\n"
 
 PressStart:
-.asciz		"You have pressed Start"
+.asciz		"You have pressed Start\n"
 
 PressUp:
-.asciz		"You have pressed Joy-pad UP"
+.asciz		"You have pressed Joy-pad UP\n"
 
 PressDown:
-.asciz		"You have pressed Joy-pad DOWN"
+.asciz		"You have pressed Joy-pad DOWN\n"
 
 PressLeft:
-.asciz		"You have pressed Joy-pad LEFT"
+.asciz		"You have pressed Joy-pad LEFT\n"
 
 PressRight:
-.asciz		"You have pressed Joy-pad RIGHT"
+.asciz		"You have pressed Joy-pad RIGHT\n"
 
 PressA:
-.asciz		"You have pressed A"
+.asciz		"You have pressed A\n"
 
 PressX:
-.asciz		"You have pressed X"
+.asciz		"You have pressed X\n"
 
 PressLeftTrigger:
-.asciz		"You have pressed Left Trigger"
+.asciz		"You have pressed Left Trigger\n"
 
 PressRightTrigger:
-.asciz		"You have pressed Right Trigger"
+.asciz		"You have pressed Right Trigger\n"
