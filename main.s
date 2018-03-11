@@ -54,6 +54,10 @@ waitForInput:
 	mov 	buttonW, r0
 	mov 	r0,buttonW		//pass the button to print button
 	bl	printButton
+	
+	// go to haltLoop$ if the button is start
+	cmp		buttonW,#0bfff8
+	beq		haltLoop$
 
 	b 	mainLoop
 
@@ -61,53 +65,96 @@ haltLoop$:
 	b		haltLoop$
 
 initGPIO:
-	// check for the gpio 9
+	push	{r4,r7}
+	
 	cmp 	r0,#9
-	beq 	setGPIO9
-	
-	// check for the gpio 10
-	cmp 	r0,#10
-	beq 	setGPIO10
-		
-	// because the gpio is not 9 or 10 then it must be GPIO 11
-	b 	setGPIO11
-	
-setGPIO9:
-	ldr 	r3,[gBaseR]		// r3 has the the value of FSR 0
-	
-	mov 	r4, #0b111		// r4 = output function code
-	bic	r3,r4,lsl #27		// clear the bit 27,28,29 in the FSR 0
+	ble 	setGPIOS0TO9
+	cmp 	r0,#19
+	ble 	setGPIOS10T19
+	cmp 	r0,#29
+	ble		setGPIOS20T29
+	cmp		r0,#39
+	b 		setGPIOS30T39
+	cmp 	r0,#49
+	b		setGPIOS40T49
+	cmp 	r0,#54
+	ble 	setGPIOS50T54
+	b 		returnInitGPIO
 
-	orr 	r3,r1,lsl #27		// the the bit 27-29 to output
+
+setGPIOS0TO9:
+	ldr 	r3,[gBaseR]		// r3 has the the value of FSR 0
+	mov 	r4, #0b111		// r4 = output function code
+	mul		r7, r0, #3
+	bic		r3,r4,lsl r7		// clear the bit 27,28,29 in the FSR 0
+
+	orr 	r3,r1,lsl r7		// the the bit 27-29 to output
 	str 	r3,[gBaseR]		// store it back to FSR 0
  	
 	b	returnInitGPIO		// goto the return of the function
 
-setGPIO10:
-
+setGPIOS10T19:
 	ldr 	r3,[gBaseR, #0x04]	// r3 has the the value of FSR 1
-	
 	mov 	r4, #0b111		// r4 = output function code
-	bic	r3,r4			// clear the bit 0-2 in the FSR 1
+	sub 	r7,	r0, #10
+	mul		r7, r7, #3
+	bic		r3,r4,lsl r7	// clear the bit 3-5 in the FSR 1
 
-	orr 	r3,r1			// the the bit 27-29 to output
+	orr 	r3,r1,lsl r7		// the the bit 27-29 to output
 	str 	r3,[gBaseR, #0x04]	// store it back to FSR 0
  	
 	b	returnInitGPIO		// goto the return of the function
-
-setGPIO11:
-	ldr 	r3,[gBaseR, #0x04]	// r3 has the the value of FSR 1
 	
+setGPIOS20T29:
+	ldr 	r3,[gBaseR, #0x08]	// r3 has the the value of FSR 2
 	mov 	r4, #0b111		// r4 = output function code
-	bic	r3,r4,lsl #3			// clear the bit 3-5 in the FSR 1
+	sub 	r7,	r0, #20
+	mul		r7, r7, #3
+	bic	r3,r4,lsl r7			// clear the bit 3-5 in the FSR 1
 
-	orr 	r3,r1,lsl #3		// the the bit 27-29 to output
-	str 	r3,[gBaseR, #0x04]	// store it back to FSR 0
+	orr 	r3,r1,lsl r7		// the the bit 27-29 to output
+	str 	r3,[gBaseR, #0x08]	// store it back to FSR 0
+ 	
+	b	returnInitGPIO		// goto the return of the function
+	
+setGPIOS30T39:
+	ldr 	r3,[gBaseR, #0x0c]	// r3 has the the value of FSR 3
+	mov 	r4, #0b111		// r4 = output function code
+	sub 	r7,	r0, #30
+	mul		r7, r7, #3
+	bic	r3,r4,lsl r7			// clear the bit 3-5 in the FSR 1
+
+	orr 	r3,r1,lsl r7		// the the bit 27-29 to output
+	str 	r3,[gBaseR, #0x0c]	// store it back to FSR 0
+ 	
+	b	returnInitGPIO		// goto the return of the function
+	
+setGPIOS40T49:
+	ldr 	r3,[gBaseR, #0x10]	// r3 has the the value of FSR 4
+	mov 	r4, #0b111		// r4 = output function code
+	sub 	r7,	r0, #40
+	mul		r7, r7, #3
+	bic	r3,r4,lsl r7			// clear the bit 3-5 in the FSR 1
+
+	orr 	r3,r1,lsl r7		// the the bit 27-29 to output
+	str 	r3,[gBaseR, #0x10]	// store it back to FSR 0
+ 	
+	b	returnInitGPIO		// goto the return of the function
+setGPIOS50T54:
+	ldr 	r3,[gBaseR, #0x14]	// r3 has the the value of FSR 4
+	mov 	r4, #0b111		// r4 = output function code
+	sub 	r7,	r0, #50
+	mul		r7, r7, #3
+	bic	r3,r4,lsl r7			// clear the bit 3-5 in the FSR 1
+
+	orr 	r3,r1,lsl r7		// the the bit 27-29 to output
+	str 	r3,[gBaseR, #0x14]	// store it back to FSR 0
  	
 	b	returnInitGPIO		// goto the return of the function
 	
 	// return to the caller
 returnInitGPIO:
+	pop		{r4,r7}
 	mov 	pc,lr
 	
 writeLatch:				//write 0 or 1 to the latch as specified by r0
